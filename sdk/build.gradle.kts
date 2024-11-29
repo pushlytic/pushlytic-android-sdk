@@ -231,66 +231,68 @@ artifacts {
     add("archives", tasks.named("androidJavadocsJar").get())
 }
 
-signing {
-    useInMemoryPgpKeys(
-        dotenv["GPG_KEY_ID"] ?: throw GradleException("GPG_KEY_ID is missing in .env"),
-        dotenv["GPG_PASSPHRASE"] ?: throw GradleException("GPG_PASSPHRASE is missing in .env")
-    )
-    sign(publishing.publications["release"])
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("release") {
-            afterEvaluate {
-                from(components["release"])
-            }
-            groupId = "io.github.pushlytic"
-            artifactId = "sdk"
-            version = pushlyticVersion
-
-            artifact(tasks.getByName("androidSourcesJar"))
-            artifact(tasks.getByName("androidJavadocsJar"))
-
-            pom {
-                packaging = "aar"
-                name.set("Pushlytic")
-                description.set("Android SDK for real-time communication using Pushlytic.")
-                url.set("https://github.com/pushlytic/pushlytic-android-sdk")
-                inceptionYear.set("2024")
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                afterEvaluate {
+                    from(components["release"])
                 }
-                developers {
-                    developer {
-                        id.set("pushlytic")
-                        name.set("Pushlytic Team")
-                        email.set("support@pushlytic.com")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/pushlytic/pushlytic-android-sdk.git")
-                    developerConnection.set("scm:git:ssh://github.com/pushlytic/pushlytic-android-sdk.git")
+                groupId = "io.github.pushlytic"
+                artifactId = "sdk"
+                version = pushlyticVersion
+
+                artifact(tasks.getByName("androidSourcesJar"))
+                artifact(tasks.getByName("androidJavadocsJar"))
+
+                pom {
+                    packaging = "aar"
+                    name.set("Pushlytic")
+                    description.set("Android SDK for real-time communication using Pushlytic.")
                     url.set("https://github.com/pushlytic/pushlytic-android-sdk")
+                    inceptionYear.set("2024")
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("https://opensource.org/licenses/MIT")
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set("pushlytic")
+                            name.set("Pushlytic Team")
+                            email.set("support@pushlytic.com")
+                        }
+                    }
+                    scm {
+                        connection.set("scm:git:git://github.com/pushlytic/pushlytic-android-sdk.git")
+                        developerConnection.set("scm:git:ssh://github.com/pushlytic/pushlytic-android-sdk.git")
+                        url.set("https://github.com/pushlytic/pushlytic-android-sdk")
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                url = if (dotenv["IS_SNAPSHOT"] == "true") {
+                    uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                } else {
+                    uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                }
+                credentials {
+                    username = dotenv["OSSRH_USERNAME"] ?: ""
+                    password = dotenv["OSSRH_PASSWORD"] ?: ""
                 }
             }
         }
     }
-    repositories {
-        maven {
-            url = if (dotenv["IS_SNAPSHOT"] == "true") {
-                uri("https://oss.sonatype.org/content/repositories/snapshots/")
-            } else {
-                uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-            }
-            credentials {
-                username = dotenv["OSSRH_USERNAME"] ?: ""
-                password = dotenv["OSSRH_PASSWORD"] ?: ""
-            }
-        }
+
+    signing {
+        useInMemoryPgpKeys(
+            dotenv["GPG_KEY_ID"] ?: throw GradleException("GPG_KEY_ID is missing in .env"),
+            dotenv["GPG_PASSPHRASE"] ?: throw GradleException("GPG_PASSPHRASE is missing in .env")
+        )
+        sign(publishing.publications["release"])
     }
 }
 
