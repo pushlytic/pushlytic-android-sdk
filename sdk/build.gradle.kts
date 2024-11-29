@@ -298,6 +298,10 @@ afterEvaluate {
         )
         sign(publishing.publications["release"])
     }
+
+    tasks.named("generateMetadataFileForReleasePublication") {
+        dependsOn(tasks.named("androidSourcesJar"))
+    }
 }
 
 configurations {
