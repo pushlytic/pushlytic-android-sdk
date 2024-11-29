@@ -21,7 +21,7 @@ if (dotenv["GPG_KEY_ID"].isNullOrEmpty() || dotenv["GPG_PASSPHRASE"].isNullOrEmp
 }
 
 android {
-    namespace = "io.github.pushlytic"
+    namespace = "com.pushlytic.sdk"
     compileSdk = 35
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
