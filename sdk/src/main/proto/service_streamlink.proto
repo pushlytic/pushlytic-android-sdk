@@ -1,0 +1,12 @@
+syntax = "proto3";
+import "google/protobuf/descriptor.proto";
+package pb;
+import "message.proto";
+option go_package = "streamlink/internal/transport/gapi/pb";
+option java_package = "pb";
+option java_multiple_files = true;
+
+service Streamlink {
+  // Bidirectional stream for sending and receiving messages
+  rpc MessageStream (stream MessageRequest) returns (stream MessageResponse);
+}
