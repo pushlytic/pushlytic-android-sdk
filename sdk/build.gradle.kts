@@ -42,6 +42,9 @@ android {
         compose = true
     }
     buildTypes {
+        debug {
+            buildConfigField("boolean", "DEBUG", "true")
+        }
         release {
             buildConfigField("boolean", "DEBUG", "false")
             isMinifyEnabled = false
@@ -198,7 +201,7 @@ tasks.register<Jar>("androidSourcesJar") {
     group = "publishing"
     archiveClassifier.set("sources")
     from(android.sourceSets["main"].java.srcDirs)
-    dependsOn("generateReleaseProto")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml") {
@@ -224,6 +227,7 @@ tasks.register<Jar>("androidJavadocsJar") {
     group = "publishing"
     archiveClassifier.set("javadoc")
     from(layout.buildDirectory.dir("javadocs").get().asFile)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 artifacts {
