@@ -7,6 +7,7 @@ plugins {
     id("com.google.protobuf")
     id("maven-publish")
     id("org.jetbrains.dokka")
+    id("signing")
 }
 
 val pushlyticVersion = "0.1.0"
@@ -14,6 +15,9 @@ val dotenv = Dotenv.configure().ignoreIfMissing().load()
 
 if (dotenv["OSSRH_USERNAME"].isNullOrEmpty() || dotenv["OSSRH_PASSWORD"].isNullOrEmpty()) {
     throw GradleException("OSSRH_USERNAME and OSSRH_PASSWORD must be set in the .env file.")
+}
+if (dotenv["GPG_KEY_ID"].isNullOrEmpty() || dotenv["GPG_PASSPHRASE"].isNullOrEmpty()) {
+    throw GradleException("GPG_KEY_ID and GPG_PASSPHRASE must be set in the .env file.")
 }
 
 android {
@@ -225,6 +229,14 @@ tasks.register<Jar>("androidJavadocsJar") {
 artifacts {
     add("archives", tasks.named("androidSourcesJar").get())
     add("archives", tasks.named("androidJavadocsJar").get())
+}
+
+signing {
+    useInMemoryPgpKeys(
+        dotenv["GPG_KEY_ID"] ?: throw GradleException("GPG_KEY_ID is missing in .env"),
+        dotenv["GPG_PASSPHRASE"] ?: throw GradleException("GPG_PASSPHRASE is missing in .env")
+    )
+    sign(publishing.publications["release"])
 }
 
 publishing {
