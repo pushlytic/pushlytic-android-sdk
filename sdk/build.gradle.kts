@@ -17,7 +17,7 @@ if (dotenv["OSSRH_USERNAME"].isNullOrEmpty() || dotenv["OSSRH_PASSWORD"].isNullO
 }
 
 android {
-    namespace = "com.pushlytic.sdk"
+    namespace = "io.github.pushlytic"
     compileSdk = 35
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -233,7 +233,7 @@ publishing {
             afterEvaluate {
                 from(components["release"])
             }
-            groupId = "com.pushlytic"
+            groupId = "io.github.pushlytic"
             artifactId = "sdk"
             version = pushlyticVersion
 
@@ -241,9 +241,11 @@ publishing {
             artifact(tasks.getByName("androidJavadocsJar"))
 
             pom {
+                packaging = "aar"
                 name.set("Pushlytic")
                 description.set("Android SDK for real-time communication using Pushlytic.")
                 url.set("https://github.com/pushlytic/pushlytic-android-sdk")
+                inceptionYear.set("2024")
                 licenses {
                     license {
                         name.set("MIT License")
