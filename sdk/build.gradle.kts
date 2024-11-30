@@ -230,24 +230,19 @@ tasks.register<Jar>("androidJavadocsJar") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-artifacts {
-    add("archives", tasks.named("androidSourcesJar").get())
-    add("archives", tasks.named("androidJavadocsJar").get())
-}
-
 afterEvaluate {
     publishing {
         publications {
             create<MavenPublication>("release") {
-                afterEvaluate {
-                    from(components["release"])
-                }
+                from(components["release"])
+
                 groupId = "io.github.pushlytic"
                 artifactId = "sdk"
                 version = pushlyticVersion
 
-                artifact(tasks.getByName("androidSourcesJar"))
-                artifact(tasks.getByName("androidJavadocsJar"))
+                artifact(tasks.named("androidJavadocsJar").get()) {
+                    classifier = "javadoc"
+                }
 
                 pom {
                     packaging = "aar"
@@ -292,15 +287,17 @@ afterEvaluate {
     }
 
     signing {
-        useInMemoryPgpKeys(
-            dotenv["GPG_KEY_ID"] ?: throw GradleException("GPG_KEY_ID is missing in .env"),
-            dotenv["GPG_PASSPHRASE"] ?: throw GradleException("GPG_PASSPHRASE is missing in .env")
-        )
+        val keyId = dotenv["GPG_KEY_ID"] ?: throw GradleException("GPG_KEY_ID is missing in .env")
+        val privateKey = dotenv["GPG_SIGNING_KEY"] ?: throw GradleException("GPG_SIGNING_KEY is missing in .env")
+        val password = dotenv["GPG_PASSPHRASE"] ?: throw GradleException("GPG_PASSPHRASE is missing in .env")
+
+        useInMemoryPgpKeys(keyId, privateKey.replace("\\n", "\n"), password)
         sign(publishing.publications["release"])
     }
 
     tasks.named("generateMetadataFileForReleasePublication") {
         dependsOn(tasks.named("androidSourcesJar"))
+        dependsOn(tasks.named("androidJavadocsJar"))
     }
 }
 
