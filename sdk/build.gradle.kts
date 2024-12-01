@@ -89,24 +89,11 @@ android {
 }
 
 dependencies {
-    testImplementation(libs.androidx.runner)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // Compose dependencies
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.process)
-    debugImplementation(libs.androidx.ui.tooling)
-
-    // Core Android dependencies
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
 
     // Protobuf and gRPC dependencies
     implementation("io.grpc:grpc-kotlin-stub:1.3.0") {
@@ -123,12 +110,10 @@ dependencies {
     implementation(libs.grpc.android)
     implementation(libs.protobuf.javalite)
     implementation(libs.protobuf.kotlin.lite)
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.javax.annotation.api)
     implementation(libs.gson)
 
     // Testing dependencies
+    testImplementation(libs.androidx.runner)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.junit)
@@ -236,7 +221,7 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
 
-                groupId = "io.github.pushlytic"
+                groupId = "com.pushlytic"
                 artifactId = "sdk"
                 version = pushlyticVersion
 

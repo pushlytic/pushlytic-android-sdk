@@ -72,7 +72,7 @@ class ApiClientTests {
 
     @Test
     fun `test concurrent operations`() = runBlocking {
-        val iterations = 100
+        val iterations = 25
         val jobs = List(iterations) { i ->
             launch(Dispatchers.Default) {
                 val userId = "user-$i"

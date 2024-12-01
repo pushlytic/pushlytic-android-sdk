@@ -18,11 +18,14 @@ A powerful Android SDK for real-time communication, enabling seamless push messa
 
 Get started with Pushlytic in your Android app - it's quick and easy!
 
-### Gradle
+#### Available on Maven Central
+The Pushlytic Android SDK is published on [Maven Central](https://search.maven.org/). You can add it to your project using Gradle or Maven.
+
+#### Gradle
 1. Add the Pushlytic Android SDK dependency to your `build.gradle` file:
    ```kotlin
    dependencies {
-       implementation("io.github.pushlytic:sdk:0.1.0")
+       implementation("com.pushlytic.sdk:sdk:0.1.0")
    }
    ```
 2. Sync your project with Gradle files.
