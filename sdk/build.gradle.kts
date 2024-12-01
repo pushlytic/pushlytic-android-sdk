@@ -236,7 +236,7 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
 
-                groupId = "io.github.pushlytic"
+                groupId = "com.pushlytic"
                 artifactId = "sdk"
                 version = pushlyticVersion
 
