@@ -10,8 +10,8 @@ A powerful Android SDK for real-time communication, enabling seamless push messa
 - Support for experiments and A/B testing
 
 ## Requirements
-- Android 5.0 (API level 21) and above
-- Java 8 or Kotlin 1.6+
+- Android 6.0 (API level 24) and above
+- Java 11 or Kotlin 1.5+
 - Gradle 7.4 or later
 
 ## Installation
@@ -22,7 +22,7 @@ Get started with Pushlytic in your Android app - it's quick and easy!
 1. Add the Pushlytic Android SDK dependency to your `build.gradle` file:
    ```kotlin
    dependencies {
-       implementation("com.pushlytic:sdk:0.1.0")
+       implementation("io.github.pushlytic:sdk:0.1.0")
    }
    ```
 2. Sync your project with Gradle files.
