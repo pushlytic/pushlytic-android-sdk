@@ -16,6 +16,7 @@
 
 package com.pushlytic.sdk
 
+import android.app.Application
 import android.os.Build
 import com.pushlytic.sdk.mocks.MockLogger
 import com.pushlytic.sdk.model.MetadataOperationType
@@ -26,6 +27,7 @@ import org.junit.Test
 import org.robolectric.annotation.Config
 import org.robolectric.RobolectricTestRunner
 import org.junit.runner.RunWith
+import org.robolectric.RuntimeEnvironment
 import kotlin.test.*
 
 @RunWith(RobolectricTestRunner::class)
@@ -34,11 +36,13 @@ class ApiClientTests {
 
     private lateinit var client: ApiClientImpl
     private lateinit var mockLogger: MockLogger
+    private lateinit var application: Application
 
     @Before
     fun setUp() {
+        application = RuntimeEnvironment.getApplication()
         mockLogger = MockLogger()
-        client = ApiClientImpl(mockLogger).apply {
+        client = ApiClientImpl(application, mockLogger).apply {
             apiKey = "test-api-key"
         }
     }
