@@ -78,6 +78,7 @@ import kotlinx.coroutines.sync.withLock
  * @since 1.0.0
  */
 object Pushlytic: MessageStreamListener {
+    private lateinit var application: Application
     private val mutex = Mutex()
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -151,6 +152,7 @@ object Pushlytic: MessageStreamListener {
         scope.launch {
             mutex.withLock {
                 cleanup()
+                this@Pushlytic.application = application
                 storedApiKey = configuration.apiKey
                 if (initializeClient(storedApiKey)) {
                     initializeLifecycleManager()
@@ -390,7 +392,7 @@ object Pushlytic: MessageStreamListener {
         if (apiKey.isNullOrEmpty()) {
             return false
         }
-        apiClient = ApiClientImpl()
+        apiClient = ApiClientImpl(application)
         apiClient?.apiKey = apiKey
         return true
     }
