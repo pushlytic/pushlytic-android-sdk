@@ -16,8 +16,11 @@
 
 package com.pushlytic.sdk
 
+import android.annotation.SuppressLint
+import android.app.Application
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import com.pushlytic.sdk.logging.DefaultLogger
 import com.pushlytic.sdk.logging.PushlyticLogger
 import com.pushlytic.sdk.model.MessageStreamState
@@ -63,6 +66,7 @@ import java.util.concurrent.TimeUnit
  * @param serverPort Optional server port; defaults to Pushlytic's primary server port
  */
 class ApiClientImpl(
+    private val application: Application,
     private val logger: PushlyticLogger = DefaultLogger()
 ) : ApiClient {
 
@@ -84,6 +88,12 @@ class ApiClientImpl(
 
     private var heartbeatManager: HeartbeatManaging = HeartbeatManagerImpl {
         messageStreamListener?.onStateChanged(MessageStreamState.Timeout)
+    }
+
+    private val deviceId: String by lazy {
+        @SuppressLint("HardwareIds")
+        val id = Settings.Secure.getString(application.contentResolver, Settings.Secure.ANDROID_ID)
+        id.ifEmpty { UUID.randomUUID().toString() }
     }
 
     init {
@@ -125,6 +135,7 @@ class ApiClientImpl(
         val metadata = Metadata().apply {
             apiKey?.let { put(Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER), "Bearer $it") }
             put(Metadata.Key.of("Client-Type", Metadata.ASCII_STRING_MARSHALLER), "Android")
+            put(Metadata.Key.of("Device-ID", Metadata.ASCII_STRING_MARSHALLER), deviceId)
         }
 
         CoroutineScope(Dispatchers.IO).launch {

@@ -1,7 +1,14 @@
 # Changelog
 All notable changes to the Pushlytic Android SDK will be documented in this file.
 
-## [0.1.0] - 2024-02-24
+## [0.1.1] - 2025-01-11
+### Added
+- Device ID tracking in gRPC metadata using ANDROID_ID
+- Cache mechanism for device ID with lazy initialization
+- UUID fallback for edge cases
+- Parity with iOS's identifierForVendor implementation
+
+## [0.1.0] - 2024-12-01
 ### Beta Release
 First beta release of Pushlytic Android SDK! 🎉
 
