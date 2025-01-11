@@ -93,7 +93,11 @@ class ApiClientImpl(
     private val deviceId: String by lazy {
         @SuppressLint("HardwareIds")
         val id = Settings.Secure.getString(application.contentResolver, Settings.Secure.ANDROID_ID)
-        id.ifEmpty { UUID.randomUUID().toString() }
+        if (id.isNullOrEmpty()) {
+            UUID.randomUUID().toString()
+        } else {
+            id
+        }
     }
 
     init {
