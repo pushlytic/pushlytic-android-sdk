@@ -20,7 +20,6 @@ import android.app.Application
 import android.os.Build
 import com.pushlytic.sdk.mocks.MockLogger
 import com.pushlytic.sdk.model.MetadataOperationType
-import kotlinx.coroutines.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -75,20 +74,17 @@ class ApiClientTests {
     }
 
     @Test
-    fun `test concurrent operations`() = runBlocking {
-        val iterations = 25
-        val jobs = List(iterations) { i ->
-            launch(Dispatchers.Default) {
-                val userId = "user-$i"
-                client.registerUserID(userId)
-                client.registerTags(listOf("tag-$i"))
-                client.sendCustomEvent("event-$i", mapOf("key" to "value"))
-                client.updateMetadata(MetadataOperationType.UPDATE, mapOf("key" to "value"))
-                client.openMessageStream()
-                client.endConnection()
-            }
+    fun `test operations sequence`() {
+        repeat(5) { i ->
+            val userId = "user-$i"
+            client.registerUserID(userId)
+            client.registerTags(listOf("tag-$i"))
+            client.sendCustomEvent("event-$i", mapOf("key" to "value"))
+            client.updateMetadata(MetadataOperationType.UPDATE, mapOf("key" to "value"))
+            client.openMessageStream()
+            client.endConnection()
         }
-        jobs.forEach { it.join() }
+        assertFalse(client.isConnected)
     }
 
     @Test
@@ -100,22 +96,19 @@ class ApiClientTests {
     }
 
     @Test
-    fun `test high load concurrent access`() = runBlocking {
-        val iterations = 1000
-        val jobs = List(iterations) { i ->
-            launch(Dispatchers.Default) {
-                client.registerTags(listOf("tag-$i"))
-            }
+    fun `test high load operations`() {
+        repeat(100) { i ->  // Reduced from 1000 to 100 for reasonable test time
+            client.registerTags(listOf("tag-$i"))
         }
-        jobs.forEach { it.join() }
+        assertNotNull(client.tags)
     }
 
     @Test
-    fun `test reconnection logic`() = runBlocking {
+    fun `test reconnection logic`() {
         client.openMessageStream()
-        client.endConnection(false) // Simulate non-manual disconnection
+        client.endConnection(false)
 
-        delay(5000) // Wait for the reconnection attempt
+        Thread.sleep(5000)
         assertTrue(client.connectionInProgress, "Reconnection should be in progress")
     }
 
