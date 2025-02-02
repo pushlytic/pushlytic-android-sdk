@@ -38,7 +38,9 @@ import org.json.JSONObject
 import pb.*
 import java.util.*
 import java.util.concurrent.TimeUnit
-
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
+import java.security.cert.X509Certificate
 /**
  * ApiClient facilitates the connection and communication with Pushlytic's gRPC server.
  *
@@ -114,8 +116,21 @@ class ApiClientImpl(
             channel.shutdownNow()
         }
 
-        channel = OkHttpChannelBuilder.forAddress(host, ApiConstants.SERVER_PORT)
-            .usePlaintext()
+        val customTrustManager =
+            @SuppressLint("CustomX509TrustManager")
+            object : X509TrustManager {
+                override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
+                override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
+                override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+            }
+
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(null, arrayOf(customTrustManager), null)
+        }
+
+        channel = OkHttpChannelBuilder.forTarget("$host:${ApiConstants.SERVER_PORT}")
+            .sslSocketFactory(sslContext.socketFactory)
+            .useTransportSecurity()
             .keepAliveTime(30, TimeUnit.SECONDS)
             .keepAliveTimeout(10, TimeUnit.SECONDS)
             .intercept(LoggingInterceptor())

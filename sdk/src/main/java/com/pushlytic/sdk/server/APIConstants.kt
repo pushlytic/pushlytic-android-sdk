@@ -27,9 +27,8 @@ object ApiConstants {
     const val HEARTBEAT_TIMEOUT_SECONDS: Long = 600 // 10 minutes, 2x HEARTBEAT_INTERVAL
     const val RECONNECTION_DELAY_SECONDS: Long = 10 // Initial delay for reconnection attempts
     const val MAX_RECONNECTION_DELAY_SECONDS: Long = 60 // Cap for exponential backoff
-    const val DEBUG_SERVER_HOST: String = "10.0.2.2"
     const val RELEASE_SERVER_HOST: String = "stream.pushlytic.com"
-    const val SERVER_PORT: Int = 50001 // Default server port
+    const val SERVER_PORT: Int = 443 // Default server port
 
     /**
      * Frequency of keep-alive pings sent to maintain the connection.
@@ -43,5 +42,4 @@ object ApiConstants {
      */
     const val KEEP_ALIVE_TIMEOUT: Long = 10 // Adjust as needed
 
-    internal fun Long.toMillis(): Long = this * 1000L
 }
