@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to the Pushlytic Android SDK will be documented in this file.
 
+## [0.1.2] - 2025-02-02
+### Changed
+- Adjusted TLS connection management for improved stability
+
 ## [0.1.1] - 2025-01-11
 ### Added
 - Device ID tracking in gRPC metadata using ANDROID_ID
