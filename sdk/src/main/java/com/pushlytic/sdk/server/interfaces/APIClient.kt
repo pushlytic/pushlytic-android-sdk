@@ -59,10 +59,24 @@ interface ApiClient {
     /**
      * Opens a message stream to communicate with the server.
      *
-     * - Establishes a bi-directional streaming connection.
-     * - Starts listening for incoming messages and state changes.
+     * @param metadata Optional metadata to include with the initial connection. Can contain
+     * additional information about the connection or user that may be useful for server-side
+     * processing or workflows.
+     *
+     * Example usage:
+     * ```kotlin
+     * // Basic connection
+     * Pushlytic.openMessageStream()
+     *
+     * // Connection with metadata
+     * Pushlytic.openMessageStream(metadata = mapOf(
+     *     "user_type" to "premium",
+     *     "app_version" to "2.1.0",
+     *     "device_language" to "en-US"
+     * ))
+     * ```
      */
-    fun openMessageStream()
+    fun openMessageStream(metadata: Map<String, Any>? = null)
 
     /**
      * Ends the current message stream connection.

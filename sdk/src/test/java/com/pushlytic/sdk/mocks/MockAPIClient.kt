@@ -29,7 +29,7 @@ class MockApiClient(override var apiKey: String?) : ApiClient {
         this.listener = listener
     }
 
-    override fun openMessageStream() {
+    override fun openMessageStream(metadata: Map<String, Any>?) {
         isConnected = true
         listener?.onStateChanged(MessageStreamState.Connected)
     }
