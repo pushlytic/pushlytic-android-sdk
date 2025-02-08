@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to the Pushlytic Android SDK will be documented in this file.
 
+## [0.1.4] - 2025-02-08
+### Changed
+- **Message Parsing Improvements**
+  - Migrated from Gson to kotlinx.serialization for better type safety
+  - Added support for nested objects and optional fields
+  - Improved error handling with SerializationException
+  - Added comprehensive test coverage for message parsing
+
 ## [0.1.3] - 2025-02-08
 ### Added
 - **Metadata Support for Initial Connection**

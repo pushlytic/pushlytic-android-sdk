@@ -29,6 +29,9 @@ import org.robolectric.RobolectricTestRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlinx.serialization.SerializationException
 
 @RunWith(RobolectricTestRunner::class)
 class PushlyticTests {
@@ -91,6 +94,152 @@ class PushlyticTests {
             },
             errorHandler = { error ->
                 assertTrue(true, "Error should be thrown for invalid JSON")
+            }
+        )
+    }
+
+    @Test
+    fun `test parseMessage processes valid JSON with optional fields`() {
+        val jsonString = """{"id": "123", "content": "Test message", "metadata": {"key": "value"}}"""
+
+        @Serializable
+        data class CustomMessage(
+            val id: String,
+            val content: String,
+            val metadata: Map<String, String>? = null
+        )
+
+        Pushlytic.parseMessage<CustomMessage>(
+            message = jsonString,
+            serializer = CustomMessage.serializer(),
+            completion = { message ->
+                assertEquals("123", message.id)
+                assertEquals("Test message", message.content)
+                assertNotNull(message.metadata)
+                assertEquals("value", message.metadata?.get("key"))
+            },
+            errorHandler = { error ->
+                fail("Parsing should not fail, but got error: $error")
+            }
+        )
+    }
+
+    @Test
+    fun `test parseMessage processes valid JSON without optional fields`() {
+        val jsonString = """{"id": "123", "content": "Test message"}"""
+
+        @Serializable
+        data class CustomMessage(
+            val id: String,
+            val content: String,
+            val metadata: Map<String, String>? = null
+        )
+
+        Pushlytic.parseMessage<CustomMessage>(
+            message = jsonString,
+            serializer = CustomMessage.serializer(),
+            completion = { message ->
+                assertEquals("123", message.id)
+                assertEquals("Test message", message.content)
+                assertNull(message.metadata)
+            },
+            errorHandler = { error ->
+                fail("Parsing should not fail, but got error: $error")
+            }
+        )
+    }
+
+    @Test
+    fun `test parseMessage handles malformed JSON`() {
+        val malformedJson = "not a json string"
+
+        @Serializable
+        data class TestMessage(
+            val id: String,
+            val content: String
+        )
+
+        Pushlytic.parseMessage<TestMessage>(
+            message = malformedJson,
+            serializer = TestMessage.serializer(),
+            completion = { _ ->
+                fail("Parsing should fail for malformed JSON")
+            },
+            errorHandler = { error ->
+                assertTrue(error is SerializationException, "Error should be a SerializationException")
+            }
+        )
+    }
+
+    @Test
+    fun `test parseMessage handles empty JSON string`() {
+        val emptyJson = ""
+
+        @Serializable
+        data class TestMessage(
+            val id: String,
+            val content: String
+        )
+
+        Pushlytic.parseMessage<TestMessage>(
+            message = emptyJson,
+            serializer = TestMessage.serializer(),
+            completion = { _ ->
+                fail("Parsing should fail for empty JSON")
+            },
+            errorHandler = { error ->
+                assertTrue(error is SerializationException, "Error should be a SerializationException")
+            }
+        )
+    }
+
+    @Test
+    fun `test parseMessage handles complex nested objects`() {
+        val jsonString = """
+        {
+            "id": "123",
+            "content": "Test message",
+            "user": {
+                "name": "John Doe",
+                "settings": {
+                    "notifications": true,
+                    "theme": "dark"
+                }
+            }
+        }
+    """.trimIndent()
+
+        @Serializable
+        data class UserSettings(
+            val notifications: Boolean,
+            val theme: String
+        )
+
+        @Serializable
+        data class User(
+            val name: String,
+            val settings: UserSettings
+        )
+
+        @Serializable
+        data class ComplexMessage(
+            val id: String,
+            val content: String,
+            val user: User
+        )
+
+        Pushlytic.parseMessage<ComplexMessage>(
+            message = jsonString,
+            serializer = ComplexMessage.serializer(),
+            completion = { message ->
+                assertEquals("123", message.id)
+                assertEquals("Test message", message.content)
+                assertEquals("John Doe", message.user.name)
+                assertTrue(message.user.settings.notifications)
+                assertEquals("dark", message.user.settings.theme)
+            },
+            errorHandler = { error ->
+                fail("Parsing should not fail, but got error: $error")
             }
         )
     }

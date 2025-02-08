@@ -11,7 +11,7 @@ plugins {
     id("signing")
 }
 
-val pushlyticVersion = "0.1.3"
+val pushlyticVersion = "0.1.4"
 val dotenv = Dotenv.configure().ignoreIfMissing().load()
 
 if (dotenv["OSSRH_USERNAME"].isNullOrEmpty() || dotenv["OSSRH_PASSWORD"].isNullOrEmpty()) {

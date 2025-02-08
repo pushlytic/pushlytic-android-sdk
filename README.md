@@ -25,7 +25,7 @@ The Pushlytic Android SDK is published on [Maven Central](https://search.maven.o
 1. Add the Pushlytic Android SDK dependency to your `build.gradle` file:
    ```kotlin
    dependencies {
-       implementation("com.pushlytic:sdk:0.1.3")
+       implementation("com.pushlytic:sdk:0.1.4")
    }
    ```
 2. Sync your project with Gradle files.
