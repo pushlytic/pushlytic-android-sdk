@@ -4,13 +4,14 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    kotlin("plugin.serialization") version "1.9.21"
     id("com.google.protobuf")
     id("maven-publish")
     id("org.jetbrains.dokka")
     id("signing")
 }
 
-val pushlyticVersion = "0.1.2"
+val pushlyticVersion = "0.1.3"
 val dotenv = Dotenv.configure().ignoreIfMissing().load()
 
 if (dotenv["OSSRH_USERNAME"].isNullOrEmpty() || dotenv["OSSRH_PASSWORD"].isNullOrEmpty()) {
@@ -90,7 +91,7 @@ android {
 
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-
+    implementation(libs.kotlinx.serialization.json.v180)
     // Compose dependencies
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.process)
@@ -121,6 +122,7 @@ dependencies {
     testImplementation(libs.robolectric.v4141)
     testImplementation(libs.mockk)
     testImplementation(libs.androidx.core)
+    testImplementation(libs.kotlinx.serialization.json.v180)
 }
 
 protobuf {

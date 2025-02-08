@@ -19,7 +19,6 @@ package com.pushlytic.sdk
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
-import com.google.gson.Gson
 import com.pushlytic.sdk.model.ConnectionStatus
 import com.pushlytic.sdk.model.MessageStreamState
 import com.pushlytic.sdk.model.MetadataOperationType
@@ -33,6 +32,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -170,9 +171,24 @@ object Pushlytic: MessageStreamListener {
     /**
      * Opens a message stream to receive messages from the server.
      * The stream will remain open until explicitly closed or the application goes to background.
+     *
+     * @param metadata Optional metadata to include with the initial connection.
+     *
+     * Example usage:
+     * ```
+     * // Basic connection
+     * Pushlytic.openMessageStream()
+     *
+     * // Connection with metadata
+     * Pushlytic.openMessageStream(metadata = mapOf(
+     *     "user_type" to "premium",
+     *     "app_version" to "2.1.0",
+     *     "device_language" to "en-US"
+     * ))
+     * ```
      */
     @JvmStatic
-    fun openMessageStream() {
+    fun openMessageStream(metadata: Map<String, Any>? = null) {
         scope.launch {
             mutex.withLock {
                 checkInitialization()
@@ -181,7 +197,12 @@ object Pushlytic: MessageStreamListener {
                 }
                 isManuallyDisconnected = false
                 _isStreamPreviouslyOpened = true
-                startMessageStream()
+
+                metadata?.let {
+                    storedMetadata = it
+                }
+
+                startMessageStream(metadata)
                 reapplyStoredState()
             }
         }
@@ -217,41 +238,59 @@ object Pushlytic: MessageStreamListener {
     }
 
     /**
-     * Decodes and processes a received JSON message string into a specified type.
+     * Decodes and processes a received JSON message string into a specified type using Kotlin Serialization.
      *
      * This method provides a type-safe way to handle incoming messages by attempting to decode
-     * them into a specified `T` type. The completion handler is always called on the main thread
+     * them into a specified type `T`. The completion handler is always called on the main thread
      * for UI safety.
      *
-     * @param jsonString The JSON string to decode
-     * @param type The class of the type to decode the JSON into
+     * @param message The JSON string to decode
+     * @param serializer The KSerializer for the type T to decode the JSON into
      * @param completion A lambda called with the decoded message on success
      * @param errorHandler Optional lambda called if decoding fails
      *
      * # Example Usage
      * ```kotlin
-     * data class CustomMessage(val id: String, val content: String)
+     * @Serializable
+     * data class CustomMessage(
+     *     val id: String,
+     *     val content: String
+     * )
      *
-     * Pushlytic.parseMessage(jsonString, CustomMessage::class.java,
-     * completion = { message ->
-     * println("Received message: $message")
-     * },
-     * errorHandler = { error ->
-     * println("Failed to decode message: $error")
-     * }
+     * Pushlytic.parseMessage(
+     *     message = jsonString,
+     *     serializer = CustomMessage.serializer(),
+     *     completion = { message ->
+     *         println("Received message: $message")
+     *     },
+     *     errorHandler = { error ->
+     *         println("Failed to decode message: $error")
+     *     }
+     * )
+     * ```
+     *
+     * Note: Your data classes must be annotated with @Serializable and use kotlinx.serialization
+     * for parsing messages. Example:
+     *
+     * ```kotlin
+     * @Serializable
+     * data class MessageData(
+     *     val id: Int,
+     *     val content: String,
+     *     val metadata: Map<String, String>? = null
      * )
      * ```
      */
     @JvmStatic
     fun <T> parseMessage(
         message: String,
-        type: Class<T>,
+        serializer: KSerializer<T>,
         completion: (T) -> Unit,
         errorHandler: ((Exception) -> Unit)? = null
     ) {
         scope.launch {
             try {
-                val message: T = Gson().fromJson(message, type)
+                val message: T = Json.decodeFromString(serializer, message)
                 mainHandler.post {
                     completion(message)
                 }
@@ -406,7 +445,7 @@ object Pushlytic: MessageStreamListener {
         lifecycleManager = LifecycleManagerImpl()
     }
 
-    private fun startMessageStream() {
+    private fun startMessageStream(metadata: Map<String, Any>? = null) {
         if (!isInitialized) {
             notifyListenerOnMain {
                 it.onConnectionStatusChanged(ConnectionStatus.Error(PushlyticError.NotConfigured))
@@ -417,7 +456,7 @@ object Pushlytic: MessageStreamListener {
         if (apiClient == null) {
             initializeClient(storedApiKey)
         }
-        apiClient?.openMessageStream()
+        apiClient?.openMessageStream(metadata)
         apiClient?.setMessageStreamListener(this@Pushlytic)
     }
 

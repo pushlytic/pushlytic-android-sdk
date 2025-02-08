@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.pushlytic.sdk.Pushlytic
 import com.pushlytic.sdk.model.ConnectionStatus
-import org.json.JSONObject
+import kotlinx.serialization.Serializable
 
 data class UserInfo(
     val userId: String,
@@ -15,6 +15,7 @@ data class UserInfo(
     val premiumStatus: Boolean
 )
 
+@Serializable
 data class MessageData(
     val address: Address?,
     val age: Int,
@@ -25,6 +26,7 @@ data class MessageData(
     val preferences: Preferences
 )
 
+@Serializable
 data class Address(
     val city: String,
     val state: String,
@@ -32,12 +34,14 @@ data class Address(
     val zip: String
 )
 
+@Serializable
 data class Marketing(
     val email: String,
     val message: String,
     val name: String
 )
 
+@Serializable
 data class Preferences(
     val newsletter: Boolean,
     val notifications: Boolean
@@ -121,9 +125,9 @@ class MainViewModel : ViewModel() {
     private fun handleMessageReceived(jsonString: String) {
         Pushlytic.parseMessage(
             message = jsonString,
-            type = MessageData::class.java,
-            completion = { messageData ->
-                _currentMessage.postValue(messageData)
+            serializer = MessageData.serializer(),
+            completion = { data ->
+                _currentMessage.postValue(data)
                 _showingMessage.postValue(true)
             },
             errorHandler = { error ->

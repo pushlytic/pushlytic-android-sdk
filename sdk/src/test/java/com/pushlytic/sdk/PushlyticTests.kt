@@ -20,6 +20,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.pushlytic.sdk.Pushlytic.Configuration
 import com.pushlytic.sdk.mocks.MockPushlyticListener
+import kotlinx.serialization.Serializable
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -52,16 +53,21 @@ class PushlyticTests {
     @Test
     fun `test parseMessage processes valid JSON`() {
         val jsonString = """{"id": "123", "content": "Test message"}"""
-        data class CustomMessage(val id: String, val content: String)
 
-        Pushlytic.parseMessage(
-            jsonString,
-            CustomMessage::class.java,
-            { message ->
+        @Serializable
+        data class CustomMessage(
+            val id: String,
+            val content: String
+        )
+
+        Pushlytic.parseMessage<CustomMessage>(
+            message = jsonString,
+            serializer = CustomMessage.serializer(),
+            completion = { message ->
                 assertEquals("123", message.id, "Message ID should match")
                 assertEquals("Test message", message.content, "Message content should match")
             },
-            { error ->
+            errorHandler = { error ->
                 fail("Parsing should not fail, but got error: $error")
             }
         )
@@ -71,13 +77,19 @@ class PushlyticTests {
     fun `test parseMessage handles invalid JSON`() {
         val invalidJson = """{"id": "123", "content": }"""
 
-        Pushlytic.parseMessage(
-            invalidJson,
-            Map::class.java,
-            { _ ->
+        @Serializable
+        data class TestMessage(
+            val id: String,
+            val content: String
+        )
+
+        Pushlytic.parseMessage<TestMessage>(
+            message = invalidJson,
+            serializer = TestMessage.serializer(),
+            completion = { _ ->
                 fail("Parsing should fail for invalid JSON")
             },
-            { error ->
+            errorHandler = { error ->
                 assertTrue(true, "Error should be thrown for invalid JSON")
             }
         )

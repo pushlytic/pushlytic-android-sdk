@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to the Pushlytic Android SDK will be documented in this file.
 
+## [0.1.3] - 2025-02-08
+### Added
+- **Metadata Support for Initial Connection**
+    - Added ability to include metadata when opening a connection via `openMessageStream(metadata:)`
+    - Updates parseMessage function to support the @Serializable api
+
 ## [0.1.2] - 2025-02-02
 ### Changed
 - Adjusted TLS connection management for improved stability

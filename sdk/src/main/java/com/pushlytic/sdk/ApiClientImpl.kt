@@ -140,9 +140,10 @@ class ApiClientImpl(
 
     /**
      * Opens a message stream to receive messages from the server.
-     * This method sets up the connection and manages the stream observer for incoming messages.
+     *
+     * @param metadata Optional metadata to include with the initial connection
      */
-    override fun openMessageStream() {
+    override fun openMessageStream(metadata: Map<String, Any>?) {
         isManuallyClosed = false
         if (::channel.isInitialized && channel.isShutdown) {
             initializeChannel()
@@ -151,14 +152,14 @@ class ApiClientImpl(
         if (isConnected || connectionInProgress) return
         connectionInProgress = true
 
-        val metadata = Metadata().apply {
+        val mtdt = Metadata().apply {
             apiKey?.let { put(Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER), "Bearer $it") }
             put(Metadata.Key.of("Client-Type", Metadata.ASCII_STRING_MARSHALLER), "Android")
             put(Metadata.Key.of("Device-ID", Metadata.ASCII_STRING_MARSHALLER), deviceId)
         }
 
         CoroutineScope(Dispatchers.IO).launch {
-            requestObserver = stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata))
+            requestObserver = stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(mtdt))
                 .messageStream(object : StreamObserver<MessageResponse> {
                     override fun onNext(message: MessageResponse) {
                         handleIncomingMessage(message)
@@ -195,7 +196,7 @@ class ApiClientImpl(
                 })
 
             requestObserver?.let { observer ->
-                sendOpenConnectionMessage(observer)
+                sendOpenConnectionMessage(observer, metadata)
             }
             startHeartbeatMonitoring()
         }
@@ -206,11 +207,17 @@ class ApiClientImpl(
      *
      * @param requestObserver The stream observer handling outgoing messages.
      */
-    private fun sendOpenConnectionMessage(requestObserver: StreamObserver<MessageRequest>) {
+    private fun sendOpenConnectionMessage(requestObserver: StreamObserver<MessageRequest>,
+                                          metadata: Map<String, Any>? = null) {
+        val metadataJson = metadata?.let { JSONObject(it).toString() } ?: ""
         val openConnectionMessage = MessageRequest.newBuilder().apply {
             sessionId = this@ApiClientImpl.sessionID
             userId = this@ApiClientImpl.userID ?: ""
             addAllTags(this@ApiClientImpl.tags ?: emptyList())
+            if (metadataJson.isNotEmpty()) {
+                metadataOperationValue = MetadataOperationType.UPDATE.toProtoValue()
+                this.metadata = metadataJson
+            }
             controlMessage = ControlMessage.newBuilder().apply {
                 command = ControlCommand.OPEN
             }.build()
